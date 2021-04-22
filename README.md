@@ -1,2 +1,2 @@
 # Real-Time-Systems
-Individual Presentation Topic: Sporadic Server
+Individual Work: Sporadic Server
