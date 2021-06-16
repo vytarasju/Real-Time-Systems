@@ -45,33 +45,73 @@ an explanation and a deep dive on the working concept, the history of developmen
 \thispagestyle{firstpagefooter}
 
 \section{Introduction}
-There are many ways of scheduling a task, since typically a task is periodic, predictable, has a lot of properties, which help managing priorities of scheduling and understanding the required steps to manage tasks with limited computational power and other resources. But what would happen, if our task would lose a lot of properties, which provide predictability? Well, Sporadic Server approach is a unique solution to this unique problem.
+All around of us there are many various real-time systems just silently running in the background without us even being aware of them. For example, flight control and defence systems, that have respectable time constraints, which are responsible for the insured functionality of many various sensors, of which the validity of data is crucial. Further more, there are many services used by us daily, which need to ensure the Quality of Service (QoS), for a smooth and pleasant experience, for instance streaming applications, video games, entertainment systems and so on.
 
-\subsection{Sporadic/Aperiodic Tasks}
+Real-time workloads are known to need predictability, to ensure quality and reliability and in reality, there are many ways of scheduling these workloads, since typically a task is periodic, predictable, has a lot of properties, which help managing priorities of scheduling and understanding the required steps to manage tasks with limited computational power and other resources. But what would happen, if our task would lose a lot of its properties, which provide predictability? Well, Sporadic Server approach is a unique solution to this unique problem. 
 
-Sporadic/Aperiodic Tasks - a completely unknown and unpredictable task: arrival times are unknown, execution times might be also unknown. To understand what kind of solution should be applied we should understand the worst case scenario of this specific task, since if we can handle the worst, we can handle any type of aperiodic task. So the characteristics of a hardest to schedule aperiodic task are:
+But first of all, it is better to have a more detailed definition of the type of the task, which is causing the change in the scheduling solution.
+
+\section{Sporadic/Aperiodic Tasks}
+
+Usually periodic tasks consist of an infinite sequence of identical activities, which are called instances or jobs and are activated at a constant frequency. Taking a look at the \textbf{Figure \ref{tasks}} we can see various notations, which belong to periodic tasks (a). In order to understand these tasks, it is useful to go through its typical variables, which are used in any scheduling algorithm to perform from basic to more complex operations.
+
+The periodic task is noted as $\tau_i$, where as ordinary instance is noted as $k$, hence the periodic job is $\tau_{ik}$. Once the first instance begins ($\tau_{i,1}$), typically the period of that instance beginning is called a \textit{phase}, which is noted as $\phi_i$. So, if $\phi_i$ is a \textit{phase} of a task $\tau_i$, the activation time of the instance $k$ is given by $\phi_i + (k-1)T_i$, where in this case $T_i$ is the activation \textit{period} of a task. Usually, since a periodic task is predictable, the main variables, with which it is possible to characterise the whole process are its phase $\phi_i$, its computational time $C_i$, its period $T_i$ and its relative deadline $D_i$.
+
+Sporadic/Aperiodic Task - a very hectic and unpredictable task: arrival times are unknown, execution times might be also unknown. To understand what kind of solution should be applied we should understand the worst case scenario of this specific task, since if we can handle the worst, we can handle any type of aperiodic task. So the characteristics of a hardest to schedule aperiodic task are:
 
 \begin{itemize}
-    \item Minimum time between arrivals of each task, high frequency.
+    \item Minimum time between arrivals of each task, high frequency;
     \item Having a known deadline, which would have the highest priority, the requirement of running the task until completion.
 \end{itemize}
 
-\textbf{NOTE} Further on compare the characteristics of the periodic and aperiodic tasks. What variables we know, and which exact ones we don't know/can't predict? (Figure \ref{tasks})
+These characteristics define an aperiodic task, which is called - sporadic.
+
+Looking back at the \textbf{Figure \ref{tasks}}, aperiodic task is defined as $J_i$, as we can see, it has one of the main variables similar to periodic task, the only difference is that since its jobs are not periodic, each job arrival time $a_{ik}$ and its absolute deadline $d_{ik}$ are defined separately.
 
 \begin{figure}[htbp]
-\centerline{\includegraphics[scale=.5]{Tasks.png}}
+\centerline{\includegraphics[scale=.48]{Tasks.png}}
 \caption{Sequences of Periodic Tasks (a) and Aperiodic Tasks (b)}
 \label{tasks}
 \end{figure}
 
-\subsection{Implementing Standard Solutions}
-What would happen, what would be the result, if we would use standard solutions to manage these specific types of tasks, is it effective, where do the standard solutions succeed and where do they fail.
+Hence, over all the periodic and aperiodic tasks have similar variables, the only difference, is that arrival and absolute deadline times on a periodic task are defined in a more general way, having an easily predictable definition of each instance, whereas aperiodic tasks have a separate variable for each instances arrival and deadline, has much less predictability, in theory - very hard to schedule.
 
-\subsection{Sporadic Server}
-Sporadic Server - an implementation on how to handle and store Sporadic Tasks.
-Definition of sporadic server and theoretical working concept.
+A sporadic tasks are aperiodic tasks with a couple of more additions to their characteristics, which makes the tasks even more so unpredictable, hard to schedule. The differences are as follows:
 
-\textbf{NOTE} Example of a Sporadic server working principle, when aperiodic tasks are considered to be a Medium-Priority (Figure \ref{example1}).
+\begin{itemize}
+    \item The minimum separation between two consecutive instances in a sporadic tasks can't be equal to zero, while on aperiodic tasks instances can come one right after the other;
+    \item Sporadic tasks have a hard deadline, meaning a failure of a sporadic task may lead to complete system failure, where as aperiodic task have a soft deadline - the failure of aperiodic tasks are less severe.
+\end{itemize}
+
+Hence, sporadic and aperiodic tasks are not to be confused, but they have a lot of similarities between them, although in this case we will be focusing more on the aperiodic tasks.
+
+\section{Sporadic Server}
+The Sporadic Server (SS) algorithm is a technique, proposed by Sprunt, Sha,
+and Lehoczky, which improves the average response time of aperiodic tasks without disregarding the utilisation bound of the periodic tasks.
+
+Basic explanation of the working principle, is that SS creates a high-priority task for servicing aperiodic tasks and preserves the server capacity at its high-priority level until aperiodic event occurs. Now this concept is not necessarily unique, it is also applicable to a couple of already existent server algorithms (for instance, a similar concept applies to Deferrable Server and Priority Exchange algorithm), but the biggest key difference with SS, is the way it replenishes its capacity - while others replenish its fully capacity at the beginning of each server period, SS replenishes its capacity only after it has been consumed by aperiodic task execution.
+
+In order to simplify the explanation of working concept of SS algorithms replenishment method, following terms are defined:
+
+\begin{itemize}
+    \item $P_{exe}$ Priority level of the task, which is being currently executed;
+    \item $P_s$ Priority level associated with the SS;
+    \item \textbf{Active} SS is said to be \textit{active}, when $P_{exe} \geq P_s$;
+    \item \textbf{Idle} SS is said to be \textit{idle}, when $P_{exe} < P_s$;
+    \item \textbf{RT} \textit{Replenishment time} at which the SS capacity will be replenished;
+    \item \textbf{RA} \textit{Replenishment amount} that will be added to the capacity at the end of the \textbf{RT};
+\end{itemize}
+
+Having these properties defined, we can start estimating the amount of capacity $C_s$ consumed by aperiodic requests according to the following rules:
+
+\begin{itemize}
+    \item The replenishment time \textbf{RT} is set as soon as SS becomes active and $C_s > 0$, let's define $t_A$ to be such a time. The value of \textbf{RT} is set equal to $t_A$ plus the server period $(\textbf{RT} = t_A + T_s)$;
+    \item  replenishment amount \textbf{RA} has to be done at the time of \textbf{RT} and is computed, when SS be comes idle or $C_s$ has been exhausted, let's call this specific time as $t_I$. The value of \textbf{RA} is set equal to the capacity consumed within the interval $[t_A, t_I]$;
+\end{itemize}
+
+Hence, knowing these specific rules and properties defined we can apply this to an exercise of SS scheduling. Taking a look at specific scenarios, SS has a few alternative working principles, according to its priority.
+
+\subsection{Medium-Priority Sporadic Server Example}
 
 \begin{figure}[htbp]
 \centerline{\includegraphics[scale=.38]{Example1.png}}
@@ -79,28 +119,52 @@ Definition of sporadic server and theoretical working concept.
 \label{example1}
 \end{figure}
 
-\textbf{NOTE} Example of a Sporadic server working principle, when aperiodic tasks are considered to be a High-Priority (Figure \ref{example2}).
+An example of medium-priority SS scheduling is shown in the \textbf{Figure \ref{example1}}. In this example we have a couple of periodic tasks, together with some aperiodic tasks appearing in the scheduling, while we have a limited supply of just 1 processor. Here we can also see the interval of when the SS is active, just to give a better understanding of how the replenishment rule functions.
+
+At time of $t = 0$, the highest priority task $\tau_1$ is scheduled, and SS becomes active. Since the $C_s > 0$, applying the first rule, a replenishment is set at the time of $RT_1 = t + T_s = 0 + 10 = 10$. At time $t = 1$, $\tau_1$ finishes execution, and since no aperiodic tasks are pending, the SS becomes idle. So far the $RT_1 = 10$, while $RA_1 = 0$, since no aperiodic tasks appeared, no replenishment happened and our capacity remains as it was before.
+
+Further on continuing, the scheduler starts $\tau_2$ task and successfully continues executing it, until $t = 4$, where the SS abruptly becomes active, and since $C_s > 0$, SS immediately allows the first aperiodic task $J_1$ to take over the processing unit. After a sudden abruption, the replenishment is set $RT_2 = t + T_s = 4 + 10 = 14$. Sequentially, $J_1$ is abrupted by the periodic $\tau_1$ task at $t = 5$, at $t = 6$ $J_1$ is continued again, where one $t$ later it is finished. Since for $J_1$ to begin, $\tau_2$ finishes its execution, ending at $t = 8$. At this time, the amount of replenishment, which is already done at the replenishment time of $RT_2$ is set equal to the capacity consumed in the interval of $[4,7]$, which is $RA_2 = 2$, hence after the $J_1$ task, our $C_s = 3$.
+
+Paying attention at the SS activation, we can see, that even if the aperiodic task has been executed with discontinuous service, throughout the whole interval of $J_1$ execution, SS stayed active.
+
+To finish off with this example, at the time of $t = 8$, SS becomes active again and a new replenishment is set $RT_3 = t + T_s = 8 + 10 = 18$, a new aperiodic task begins its execution, and since there are no other tasks interfering with the current execution, it ends at $t = 10$. Since the current aperiodic task used up 2 $t$ slots, the replenishment needed to be done is $RA_3 = 2$. Continuing further, periodic tasks are being executed without abruption, while the capacity replenishes at the $t = 14$ and $t = 18$, increasing the $C_s$ by exactly 2 each time, which would be equivalent to each of the aperiodic task execution times.
+
+To sum the example up, SS operated as expected, but since it had medium priority, the tasks, which had the top priority, in this case $\tau_1$, had to be executed at all costs, even having to abrupt $J_1$ in the middle of its execution, while also using the SS activation each time the $\tau_1$ is being called, just to not have aperiodic tasks interrupting the task. Hence, this is an implementation of medium-priority SS.
+
+\subsection{High-Priority Sporadic Server Example}
 
 \begin{figure}[htbp]
-\centerline{\includegraphics[scale=.39]{Example1.png}}
+\centerline{\includegraphics[scale=.39]{Example2.png}}
 \caption{High-Priority Sporadic Server}
 \label{example2}
 \end{figure}
 
-\section{Implementation}
-An example of how could this be implemented. Implementation in  Ada [3]
+Taking a look at the \textbf{Figure \ref{example2}}, it shows an example of a high-priority SS scheduling. Here, similar to the previous example, we have two periodic tasks continuously running, while also having a few of high-priority aperiodic tasks appearing in the scheduling. As previously, this task is also restricted to just a single processing unit. Although in this example there is no more visualisation of SS activation, since in this example its functionality does not differ.
 
-\section{History of Development}
-A detailed timeline of how this method came to be developed, who developed it and what were the intentions
+Focusing on the aperiodic tasks, the first one $J_1$ starts at the time of $t = 2$, interrupting the $\tau_1$, since at this example SS has high-priority. Without any possible abruptions the $J_1$ ends at $t = 4$, and since it took 2 $t$ slots, its $RA_1 = 2$. Taking a look at servers $C_s$, after the $J_1$ it becomes absolutely empty. Calculating the $RT_1 = t + T_s = 2 + 8 = 10$, makes it clear, that the server will only replenish at $t = 10$.
+
+Continuing further with the example, at $t = 7$ another aperiodic task $J_2$arrives, but since at the arrival time $C_s = 0$, the task has to wait for the execution until the capacity replenishes. And so at $t = 10$, once the capacity rises up again to 2, $J_2$ task abrupts the $\tau_1$ task, executes without any issues and drains the server capacity again, leaving the server to wait for the $RT_2 = t + T_s = 10 + 8 = 18$, until it will replenish and will be able to execute future upcoming aperiodic tasks again.
+
+Summing up the example of high-priority SS scheduling, we can see, that once the aperiodic tasks arrives, the only property which can delay the task is the server capacity and the time it requires to replenish. Other than that, both medium-priority and high-priority function relatively the same way.
 
 \section{Usage and Appliance}
 Where is it applied in real situations, where is it used in
 
+Sporadic Micro satellite
+
 \section{Advantages}
-Any positive advantages related to this method, why and where is it useful to use this method
+Of course, the main advantage of using the SS implementation of aperiodic task scheduling, is that even if we take out one of the most helpful properties from a task, which help us easily schedule any task with even the absolute minimum required scheduling power and make the task unpredictable, we can maintain the aperiodic scheduling, while still managing to execute periodic tasks.
+
+SS algorithm introduces prioritising, so if there is a periodic task, which has a higher priority, than the SS, aperiodic tasks will not affect the execution times of these specific tasks. Considering, that it is already a fairly complex scenario of maintaining the schedulability, adapting prioritisation is quite impressive.
+
+One of the most unique additions to aperiodic scheduling, which SS introduces, is its replenishing rule and ability to adapt it uniquely to each periodic scheduling while also considering the budget of server capacity.
+
+Furthermore, the performance of SS is, compared to other aperiodic task scheduling approaches, fairly good, according to many studies \cite{b4}.
 
 \section{Disadvantages}
-Any disadvantages, which might lead to certain issues, why and where this method can not be applied
+One of the biggest disadvantages, is that SS violates one of the basic assumptions governing the execution of the standard periodic task. The assumption is, that that once a high-priority periodic task is ready for execution, it executes without abruption, but in the example of high-priority SS, any periodic task, no matter its priority, are instantly abrupted and pushed back, if needed.
+
+Another issue, is that more complex scenarios may introduce a lot of difficulties concerning schedulability analysis, since the server is implemented in a way, where it is fragmented in a bunch of small pieces, only being usable at certain times and each aperiodic task introduces a unique time stamp, after which a certain amount of server capacity will be restored, according to the rule of replenishment. As a consequence, calculating the time at which a certain aperiodic task will be executed, requires to keep track of all of the replenishments that will occur until the deadline of the task.
 
 \section{Evaluation}
 Personal opinion, is it useful, is there future for this method?
@@ -112,6 +176,8 @@ Final thoughts, concluding the topic
 \bibitem{b1} G. C. Buttazzo "Hard Real-Time Computing Systems: Predictable Scheduling Algorithms and Applications" 3rd ed. New York: Springer, 2011
 \bibitem{b2} Brinkley Sprunt, Lui Sha, John Lehoczky "Scheduling Sporadic and Aperiodic Events In a Hard Real-Time System" 1989
 \bibitem{b3} Brinkley Sprunt, Lui Sha "Implementing Sporadic Servers in Ada" 1990
+\bibitem{b4} G. C. Buttazzo "Rate Monotonic vs. EDF: Judgment Day" Real-Time Systems, 29, 526, 2005
+
 \end{thebibliography}
 
 \end{document}
