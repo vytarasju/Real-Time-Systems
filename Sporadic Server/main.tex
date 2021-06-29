@@ -21,11 +21,13 @@
 
 \pagestyle{empty}
 
+\bibliographystyle{IEEEtran}
+
 \begin{document}
 \title{Sporadic Server}
 
 \author{\IEEEauthorblockN{Vytaras Juraska}
-\IEEEauthorblockB{\textit{Electronics Engineering (6\textsuperscript{th} Semester)} \\
+\IEEEauthorblockA{\textit{Electronics Engineering (6\textsuperscript{th} Semester)} \\
 \textit{Hamm-Lippstadt Hochschule}\\
 Lippstadt, Germany \\
 vytaras.juraska@stud.hshl.de}
@@ -36,7 +38,7 @@ vytaras.juraska@stud.hshl.de}
 \begin{abstract}
 an explanation and a deep dive on the working concept, the history of development and the usage of a very specific solution to aperiodic and unpredictable task scheduling - Sporadic Server. Understanding and analyzing the relevancy and connection when applying specified scheduling server to the current time and age technology standards.
 \end{abstract}
-
+    
 
 %\begin{IEEEkeywords}
 %component, formatting, style, styling, insert
@@ -70,7 +72,7 @@ Looking back at the \textbf{Figure \ref{tasks}}, aperiodic task is defined as $J
 
 \begin{figure}[htbp]
 \centerline{\includegraphics[scale=.48]{Tasks.png}}
-\caption{Sequences of Periodic Tasks (a) and Aperiodic Tasks (b)}
+\caption{Sequences of (a) Periodic Tasks and (b) Aperiodic Tasks \cite{b1}}
 \label{tasks}
 \end{figure}
 
@@ -86,8 +88,7 @@ A sporadic tasks are aperiodic tasks with a couple of more additions to their ch
 Hence, sporadic and aperiodic tasks are not to be confused, but they have a lot of similarities between them, although in this case we will be focusing more on the aperiodic tasks.
 
 \section{Sporadic Server}
-The Sporadic Server (SS) algorithm is a technique, proposed by Sprunt, Sha,
-and Lehoczky, which improves the average response time of aperiodic tasks without disregarding the utilisation bound of the periodic tasks.
+The Sporadic Server (SS) algorithm is a technique, proposed by Sprunt, Sha, and Lehoczky, which improves the average response time of aperiodic tasks without disregarding the utilisation bound of the periodic tasks. Throughout the whole section of SS a book of Giorgio C. Buttazzo about hard real-time systems will be the main reference point \cite{b1}.
 
 Basic explanation of the working principle, is that SS creates a high-priority task for servicing aperiodic tasks and preserves the server capacity at its high-priority level until aperiodic event occurs. Now this concept is not necessarily unique, it is also applicable to a couple of already existent server algorithms (for instance, a similar concept applies to Deferrable Server and Priority Exchange algorithm), but the biggest key difference with SS, is the way it replenishes its capacity - while others replenish its fully capacity at the beginning of each server period, SS replenishes its capacity only after it has been consumed by aperiodic task execution.
 
@@ -115,7 +116,7 @@ Hence, knowing these specific rules and properties defined we can apply this to 
 
 \begin{figure}[htbp]
 \centerline{\includegraphics[scale=.38]{Example1.png}}
-\caption{Medium-Priority Sporadic Server}
+\caption{Medium-Priority Sporadic Server \cite{b1}}
 \label{example1}
 \end{figure}
 
@@ -135,7 +136,7 @@ To sum the example up, SS operated as expected, but since it had medium priority
 
 \begin{figure}[htbp]
 \centerline{\includegraphics[scale=.39]{Example2.png}}
-\caption{High-Priority Sporadic Server}
+\caption{High-Priority Sporadic Server \cite{b1}}
 \label{example2}
 \end{figure}
 
@@ -147,10 +148,41 @@ Continuing further with the example, at $t = 7$ another aperiodic task $J_2$arri
 
 Summing up the example of high-priority SS scheduling, we can see, that once the aperiodic tasks arrives, the only property which can delay the task is the server capacity and the time it requires to replenish. Other than that, both medium-priority and high-priority function relatively the same way.
 
-\section{Usage and Appliance}
-Where is it applied in real situations, where is it used in
+\section{Reinterpretation}
 
-Sporadic Micro satellite
+There is a unique way to define the concept of SS, differently from previous definitions. From a scheduling point of view, we can treat SS as a periodic task with a period $T_s$ and execution time $C_s$. The theory is as follows: "A periodic task set that is schedulable with a task $τ_i$ is also schedulable if $τ_i$ is replaced by a Sporadic Server with the same period and execution time." \cite{b1}
+
+This is easily proved by showing, that for any type of service - SS execution can be represented by one or more periodic tasks. Let's define $t_A$ as a time at which the previously defined server capacity $C_s$ is filled and SS turns to an active state, and on the contrary, let's say that $t_I$ is the time, when SS is idle, hence the period, of when SS is active is represented by $[t_A,t_I ]$.  Using the method of delaying a periodic task, this characteristic can be simply defined in three unique cases.
+
+\subsection{Full Server Capacity}
+
+If during the $[t_A,t_I ]$ period SS capacity does not get consumed, no replenishments will be done until $t_I + T_s$, which means, that all of the server capacity $C_s$ can be executed in the period of  $[t_A,t_I  + T_s]$. Theoretically, in this scenario we can replace SS with a periodic task, which we can call $\tau_s$, where its computational time would be $C_s$ and its period would be $T_s$ and it simply had a delay time from $t_A$ to $t_I$. Theoretically, if a periodic task is delayed, it will not affect other periodic tasks (the delay is easily dealt with in an algorithm, called Rate Monotonic Scheduling). This behaviour is visualised in the Figure \ref{rein1}
+
+\begin{figure}[htbp]
+\centerline{\includegraphics[scale=.39]{reinterpretation_full_capacity.png}}
+\caption{SS Server Capacity is Full \cite{b1}}
+\label{rein1}
+\end{figure}
+
+\subsection{Empty Server Capacity}
+
+If the SS server capacity gets fully consumed at the period of  $[t_A,t_I ]$, then a replenishment will happen at the time of $t_A + T_s$. This is an exact behaviour of a simple periodic task, with the computational time of $C_s$ and period of $T_s$, no delay of the tasks release has to be done. Figure \ref{rein2} displays mentioned behaviour.
+
+\begin{figure}[htbp]
+\centerline{\includegraphics[scale=.39]{reinterpretation_no_capacity.png}}
+\caption{SS Server Capacity is Empty \cite{b1}}
+\label{rein2}
+\end{figure}
+
+\subsection{Partial Server Capacity}
+
+If the SS server capacity is partially used up in the period of  $[t_A,t_I ]$, then a replenishment is needed at $t_A + T_s$. This  reinterpretation would be done defined using two periodic tasks, having the same period, the only characteristic differentiating these tasks would be computational time. Defining, that $C_R$ is the server capacity consumed at the period of $[t_A,t_I ]$, we could define the other periodic tasks computational time as $C_s - C_R$. Hence this behaviour can be reinterpreted as a periodic task $\tau_x$ with computational time $C_x = C_R$ and period $T_x = T_s$ and as a second periodic task $\tau_y$ with computational time $C_y = C_s - C_R$ and period $T_y = T_s$. In the Figure \ref{rein3} a visualisation of this exact scenario is represented.
+
+\begin{figure}[htbp]
+\centerline{\includegraphics[scale=.39]{reinterpretation_partial_capacity.png}}
+\caption{SS Server Capacity is Partially Used \cite{b1}}
+\label{rein3}
+\end{figure}
 
 \section{Advantages}
 Of course, the main advantage of using the SS implementation of aperiodic task scheduling, is that even if we take out one of the most helpful properties from a task, which help us easily schedule any task with even the absolute minimum required scheduling power and make the task unpredictable, we can maintain the aperiodic scheduling, while still managing to execute periodic tasks.
@@ -159,25 +191,22 @@ SS algorithm introduces prioritising, so if there is a periodic task, which has 
 
 One of the most unique additions to aperiodic scheduling, which SS introduces, is its replenishing rule and ability to adapt it uniquely to each periodic scheduling while also considering the budget of server capacity.
 
-Furthermore, the performance of SS is, compared to other aperiodic task scheduling approaches, fairly good, according to many studies \cite{b4}.
+Furthermore, the performance of SS is, compared to other aperiodic task scheduling approaches, fairly good, according to many studies \cite{b3}.
 
 \section{Disadvantages}
 One of the biggest disadvantages, is that SS violates one of the basic assumptions governing the execution of the standard periodic task. The assumption is, that that once a high-priority periodic task is ready for execution, it executes without abruption, but in the example of high-priority SS, any periodic task, no matter its priority, are instantly abrupted and pushed back, if needed.
 
-Another issue, is that more complex scenarios may introduce a lot of difficulties concerning schedulability analysis, since the server is implemented in a way, where it is fragmented in a bunch of small pieces, only being usable at certain times and each aperiodic task introduces a unique time stamp, after which a certain amount of server capacity will be restored, according to the rule of replenishment. As a consequence, calculating the time at which a certain aperiodic task will be executed, requires to keep track of all of the replenishments that will occur until the deadline of the task.
+Another issue, is that more complex scenarios may introduce a lot of difficulties concerning schedulability analysis \cite{b1}, since the server is implemented in a way, where it is fragmented in a bunch of small pieces, only being usable at certain times and each aperiodic task introduces a unique time stamp, after which a certain amount of server capacity will be restored, according to the rule of replenishment. As a consequence, calculating the time at which a certain aperiodic task will be executed, requires to keep track of all of the replenishments that will occur until the deadline of the task.
 
-\section{Evaluation}
-Personal opinion, is it useful, is there future for this method?
+\section{Summary and Conclusion}
+This paper describes the theoretical and practical definition of the Sporadic Server algorithm - a general algorithm for scheduling medium and high priority aperiodic tasks in real-time systems. 
 
-\section{Conclusion}
-Final thoughts, concluding the topic
+Essentially, it is a well developed solution, which is widely used and concerning the approach for scheduling aperiodic tasks while still having to deal with periodic tasks. Having an upper hand in performance, compared with other aperiodic scheduling approaches, introducing prioritisation in aperiodic tasks and defining a simple to understand implementation of aperiodic server capacity, it is understandable, why in this day and age standards SS is still concerned as a suitable implementation. 
 
-\begin{thebibliography}{00}
-\bibitem{b1} G. C. Buttazzo "Hard Real-Time Computing Systems: Predictable Scheduling Algorithms and Applications" 3rd ed. New York: Springer, 2011
-\bibitem{b2} Brinkley Sprunt, Lui Sha, John Lehoczky "Scheduling Sporadic and Aperiodic Events In a Hard Real-Time System" 1989
-\bibitem{b3} Brinkley Sprunt, Lui Sha "Implementing Sporadic Servers in Ada" 1990
-\bibitem{b4} G. C. Buttazzo "Rate Monotonic vs. EDF: Judgment Day" Real-Time Systems, 29, 526, 2005
+Although, in terms of schedulability, SS can also be simply interpreted as a periodic task with the implementation of delayed task arrival, which, in some scheduling approaches, is handled without issues. Also, considering the violation of one of the standard periodic task assumptions, SS definitely has room for improvement. 
 
-\end{thebibliography}
+Nevertheless, considering which scheduling approach has the best performance - really depends on the requirements of the implementation needed to be done. Hence, if the system is already aware of the disadvantages of SS, used in specific applications, this scheduling approach can deliver astonishing performance.
+
+\bibliography{references}
 
 \end{document}
